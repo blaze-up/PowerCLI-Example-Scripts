@@ -1,0 +1,33 @@
+Function Get-vGPUlist{
+
+    Param (
+         $Cluster,
+         $VMhost
+         
+    )
+
+    If ($cluster){
+        $VMs = get-cluster -name $cluster | get-vm
+        }
+
+    If($vmhost){
+        $VMs = get-vmhost -name $vmhost | get-vm
+        }
+
+ 
+    
+    $output=@()
+    foreach ($VM in $VMs){
+
+    $object = New-Object PSObject
+    Add-Member -InputObject $object NoteProperty Name $VM.Name
+
+    $vGPUDevice = $VM.ExtensionData.Config.hardware.Device  | where {$_.Backing.Vgpu}
+    Add-Member -InputObject $object NoteProperty vGPUprofile $vGPUDevice.Backing.Vgpu
+
+    $output+= $object
+    }
+    
+    $output | sort-object vGPUprofile
+
+    }
